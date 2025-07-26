@@ -1,0 +1,29 @@
+
+      confirmButton.addEventListener('click', function () {
+        if (selectedRunes.length === 1) {
+          const data = JSON.stringify({ runes: selectedRunes });
+
+          try {
+            if (TelegramWebApp) {
+              TelegramWebApp.sendData(data);
+              console.log("Данные отправлены в бот: ", data);
+              TelegramWebApp.close();
+            } else {
+              // Fallback для тестирования вне Telegram
+              alert("Ваш выбор: " + selectedRunes.join(', '));
+            }
+          } catch (error) {
+            console.error("Ошибка при отправке данных в Telegram:", error);
+            alert("Ошибка при отправке данных. Попробуйте снова.");
+          }
+        } else {
+          alert("Пожалуйста, выберите 1 руну для интерпретации.");
+        }
+      });
+
+      // Инициализируем UI
+      updateUI();
+    });
+  </script>
+</body>
+</html>
