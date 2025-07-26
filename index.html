@@ -272,7 +272,7 @@
           if (runeElement.classList.contains('selected')) {
             runeElement.classList.remove('selected');
             selectedRunes = selectedRunes.filter(selected => selected !== runeName);
-          } else if (selectedRunes.length < 3) {
+          } else if (selectedRunes.length < 1) {
             runeElement.classList.add('selected');
             selectedRunes.push(runeName);
           }
@@ -282,8 +282,8 @@
       });
 
       function updateUI() {
-        confirmButton.disabled = selectedRunes.length !== 3;
-        confirmButton.textContent = `Подтвердить выбор (${selectedRunes.length}/3)`;
+        confirmButton.disabled = selectedRunes.length !== 1;
+        confirmButton.textContent = `Подтвердить выбор (${selectedRunes.length}/1)`;
       }
 
       confirmButton.addEventListener('click', function () {
