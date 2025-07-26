@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Выберите Руны</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: Arial, sans-serif;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    body {
+      background-image: url('background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    .overlay {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px 20px 150px 20px; /* увеличили отступ снизу */
+      z-index: 2;
+    }
+
+    .content-container {
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 600px;
+      width: 100%;
+      margin-top: -80px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .title {
+      text-align: center;
+      color: #ffffff;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      font-weight: bold;
+    }
+
+    .instruction {
+      text-align: center;
+      color: #ffffff;
+      margin-bottom: 20px;
+      font-size: 1rem;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    .rune-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .rune {
+      width: 150px;
+      height: 210px;
+      background: url('back.png') no-repeat center center;
+      background-size: cover;
+      background-color: #1a1a1a;
+      border: 2px solid #ffffff;
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .rune:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(255, 255, 255, 0.4);
+    }
+
+    .rune.selected {
+      background-image: none;
+      background-color: #444;
+      border-color: #ffffff;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+    }
+
+    .rune img {
+      display: none;
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+
+    .rune.selected img {
+      display: block;
+    }
+
+    .confirm-button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffffff;
+      background: linear-gradient(145deg, #4caf50, #45a049);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+
+    .confirm-button:hover {
+      background: linear-gradient(145deg, #45a049, #3d8b40);
+      transform: translateY(-1px);
+    }
+
+    .confirm-button:disabled {
+      background: #666;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Исправленный мешочек - уменьшаем z-index */
+    .bag-container {
+      position: fixed;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 1; /* меньше чем у content */
+      pointer-events: none;
+    }
+
+    .bag-image {
+      width: 120px;
+      height: auto;
+      animation: swing 3s ease-in-out infinite;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+    }
+
+    @keyframes swing {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(3deg); }
+      50% { transform: rotate(0deg); }
+      75% { transform: rotate(-3deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    /* Для маленьких экранов УМЕНЬШАЕМ руны */
+    @media (max-width: 480px) {
+      .content-container {
+        margin: 10px;
+        padding: 15px;
+      }
+      
+      .rune {
+        width: 90px !important;
+        height: 130px !important;
+      }
+      
+      .rune-container {
+        gap: 10px;
+      }
+      
+      .bag-image {
+        width: 100px;
+      }
+      
+      .overlay {
+        padding: 20px 10px 130px 10px;
+      }
+    }
+
+    /* Для средних экранов тоже чуть уменьшаем */
+    @media (max-width: 768px) and (min-width: 481px) {
+      .rune {
+        width: 120px !important;
+        height: 170px !important;
+      }
+      
+      .rune-container {
+        gap: 15px;
+      }
+    }
+
+    /* Принудительное удаление Telegram стилей */
+    .tgme_widget_message_bubble_tail {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay">
+    <div class="content-container">
+      <p class="instruction">Выберите 1 руну для получения руны на день:</p>
+      <div id="rune-selection" class="rune-container">
+        <!-- Руны будут добавлены с помощью JavaScript -->
+      </div>
+      <button id="confirm-selection" class="confirm-button">Подтвердить выбор</button>
+    </div>
+  </div>
+
+  <!-- Мешочек -->
+  <div class="bag-container">
+    <img src="bag.png" alt="Мешочек" class="bag-image">
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Инициализация Telegram WebApp
+      const TelegramWebApp = window.Telegram?.WebApp;
+      if (TelegramWebApp) {
+        TelegramWebApp.ready();
+        TelegramWebApp.expand();
+      }
+
+      const runeNames = [
+        "fehu", "uruz", "thurisaz", "ansuz", "raido", "kenaz", "gebo", "wunjo",
+        "hagalaz", "nauthiz", "isa", "jera", "eihwaz", "perthro", "algiz", "sowilo",
+        "tiwaz", "berkana", "ehwaz", "mannaz", "laguz", "ingwaz", "dagaz", "othala"
+      ];
+      const runeContainer = document.getElementById('rune-selection');
+      const confirmButton = document.getElementById('confirm-selection');
+      let selectedRunes = [];
+
+      const randomRunes = runeNames.sort(() => 0.5 - Math.random()).slice(0, 8);
+
+      randomRunes.forEach(runeName => {
+        const runeElement = document.createElement('div');
+        runeElement.classList.add('rune');
+        runeElement.dataset.name = runeName;
+
+        const frontImg = document.createElement('img');
+        frontImg.src = runeName + '.png';
+        frontImg.alt = runeName;
+        
+        // Добавляем обработчик ошибки загрузки изображения
+        frontImg.onerror = function() {
+          console.log('Не удалось загрузить изображение:', runeName + '.png');
+          // Можно добавить fallback текст или символ
+          runeElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #f0e68c; font-size: 2rem;">?</div>';
+        };
+
+        runeElement.appendChild(frontImg);
+        runeContainer.appendChild(runeElement);
+
+        runeElement.addEventListener('click', function () {
+          if (runeElement.classList.contains('selected')) {
+            runeElement.classList.remove('selected');
+            selectedRunes = selectedRunes.filter(selected => selected !== runeName);
+          } else if (selectedRunes.length < 3) {
+            runeElement.classList.add('selected');
+            selectedRunes.push(runeName);
+          }
+          
+          updateUI();
+        });
+      });
+
+      function updateUI() {
+        confirmButton.disabled = selectedRunes.length !== 3;
+        confirmButton.textContent = `Подтвердить выбор (${selectedRunes.length}/3)`;
+      }
+
+      confirmButton.addEventListener('click', function () {
+        if (selectedRunes.length === 1) {
+          const data = JSON.stringify({ runes: selectedRunes });
+
+          try {
+            if (TelegramWebApp) {
+              TelegramWebApp.sendData(data);
+              console.log("Данные отправлены в бот: ", data);
+              TelegramWebApp.close();
+            } else {
+              // Fallback для тестирования вне Telegram
+              alert("Ваш выбор: " + selectedRunes.join(', '));
+            }
+          } catch (error) {
+            console.error("Ошибка при отправке данных в Telegram:", error);
+            alert("Ошибка при отправке данных. Попробуйте снова.");
+          }
+        } else {
+          alert("Пожалуйста, выберите 1 руну для интерпретации.");
+        }
+      });
+
+      // Инициализируем UI
+      updateUI();
+    });
+  </script>
+</body>
+</html>
